@@ -1,19 +1,20 @@
-﻿#ifndef _OFX_SIMPLE_SERIAL
-#define _OFX_SIMPLE_SERIAL
+#pragma once
 
 #include "ofSerial.h"
 #include "ofEvents.h"
+#include "ofThread.h"
 
 #define NUM_BYTES 1
 
 using namespace std;
 
-class ofxSimpleSerial : public ofSerial{
+class ofxSimpleSerial : public ofSerial, public ofThread{
 public:
 	string message;
 
 	ofxSimpleSerial();
 	void sendRequest();
+    void start(bool _blocking = true, bool _verbose = false) { startThread(_blocking, _verbose); }
 	void startContinuousRead(bool writeByte = true);
 	void stopContinuousRead();
 	void writeString(string message);
@@ -26,8 +27,8 @@ protected:
 	bool			continuousRead;
 	bool			bWriteByte;
 	void			initSetup();
-	void			update(ofEventArgs & args);
+    void            threadedFunction();
+	//void			update(ofEventArgs & args);
 	void			read();
 };
 
-#endif

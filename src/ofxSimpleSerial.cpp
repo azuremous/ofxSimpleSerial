@@ -1,4 +1,4 @@
-﻿#include "ofxSimpleSerial.h"
+#include "ofxSimpleSerial.h"
 
 ofxSimpleSerial::ofxSimpleSerial() {
 	message = "";
@@ -19,7 +19,7 @@ void ofxSimpleSerial::startContinuousRead(bool writeByte) {
 }
 void ofxSimpleSerial::stopContinuousRead() {
 	continuousRead = false;
-	ofRemoveListener(ofEvents().update, this, &ofxSimpleSerial::update);
+	//ofRemoveListener(ofEvents().update, this, &ofxSimpleSerial::update);
 }
 /*
 * Request new data from the device you're connected to.
@@ -27,14 +27,27 @@ void ofxSimpleSerial::stopContinuousRead() {
 void ofxSimpleSerial::sendRequest()
 {
 	if (bWriteByte) writeByte('r');
-	ofAddListener(ofEvents().update, this, &ofxSimpleSerial::update);
+	//ofAddListener(ofEvents().update, this, &ofxSimpleSerial::update);
 }
 
+/* //use thread
 void ofxSimpleSerial::update(ofEventArgs & args)
 {
 	read();
 	if (continuousRead)
 		sendRequest();
+}
+*/
+
+void ofxSimpleSerial::threadedFunction(){
+    while (isThreadRunning()) {
+        if (lock()) {
+            read();
+            if (continuousRead) { sendRequest(); }
+            unlock();
+            
+        }
+    }
 }
 
 void ofxSimpleSerial::read()
@@ -56,15 +69,14 @@ void ofxSimpleSerial::read()
 			{
 				message = messageBuffer;
 				messageBuffer = "";
-				ofRemoveListener(ofEvents().update, this, &ofxSimpleSerial::update);
+				//ofRemoveListener(ofEvents().update, this, &ofxSimpleSerial::update);
 				ofNotifyEvent(NEW_MESSAGE, message, this);
 
 				break;
 			}
 			else
 			{
-				if (*bytesReturned != '\r')
-					messageBuffer += *bytesReturned;
+				if (*bytesReturned != '\r') { messageBuffer += *bytesReturned; }
 			}
 			//cout << "  messageBuffer: " << messageBuffer << "\n";
 		}
